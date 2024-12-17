@@ -257,7 +257,6 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
     }
 
     function deposit(uint256 amount) external {
-        require(IERC20(token).transferFrom(msg.sender, address(this), amount), "Transfer failed");
         if (totalSupply() == 0) {
             _mint(msg.sender, amount);
         }
@@ -265,6 +264,7 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
             uint256 shares = (amount * totalSupply()) / totalTokenSupply();
             _mint(msg.sender, shares);
         }
+        require(IERC20(token).transferFrom(msg.sender, address(this), amount), "Transfer failed");
         emit Deposit(msg.sender, amount);
     }
 
