@@ -1,0 +1,40 @@
+{
+  "name": "vault-evm",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "prescript": "hardhat compile && typechain --target ethers-v5 --out-dir ./typechain './artifacts/!(build-info)/**/!(*.dbg).json'",
+    "script": "hardhat run --network localhost",
+    "compile": "hardhat compile && typechain --target ethers-v5 --out-dir ./typechain './artifacts/!(build-info)/**/!(*.dbg).json'"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "@nomiclabs/hardhat-ethers": "^2.2.3",
+    "@nomiclabs/hardhat-etherscan": "^3.1.7",
+    "@nomiclabs/hardhat-waffle": "^2.0.3",
+    "@nomiclabs/hardhat-web3": "^2.0.0",
+    "@typechain/ethers-v5": "^11.1.2",
+    "@typechain/hardhat": "^7.0.0",
+    "hardhat": "^2.14.0",
+    "hardhat-gas-reporter": "^2.2.2",
+    "ts-node": "^10.9.2",
+    "typechain": "^8.3.2",
+    "web3": "^1.10.4"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.1.0",
+    "@openzeppelin/contracts-upgradeable": "^5.1.0",
+    "@openzeppelin/hardhat-upgrades": "^1.28.0",
+    "@safe-global/api-kit": "^2.5.4",
+    "@safe-global/protocol-kit": "^5.0.4",
+    "@safe-global/sdk-starter-kit": "^1.0.4",
+    "@types/node": "^22.10.2",
+    "dotenv": "^16.4.7",
+    "ethers": "^5.7.2",
+    "semver": "^7.6.3",
+    "typescript": "^5.7.2"
+  }
+}
