@@ -20,7 +20,7 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://eth.drpc.org",
+        url: "https://ethereum-rpc.publicnode.com",
         blockNumber: 21412492// Optional: specify a block number to fork from
       },
       accounts: [

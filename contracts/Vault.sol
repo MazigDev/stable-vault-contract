@@ -4,11 +4,11 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IAaveV2, IAaveV3, DataTypes} from "./IAave.sol";
-import {ICompoundV2, ExponentialNoError} from "./ICompoundV2.sol";
+import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
 import {console} from "hardhat/console.sol";
 
-contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
+contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
     address public admin;
     address public token;
@@ -134,9 +134,8 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
         return IERC20(reserve.aTokenAddress).balanceOf(address(this));
     }
 
-    function balanceCompoundV2(address _compoundAddress) public view returns (uint256) {
-        Exp memory exchangeRate = Exp({mantissa: ICompoundV2(_compoundAddress).exchangeRateCurrent()});
-        return mul_ScalarTruncate(exchangeRate, ICompoundV2(_compoundAddress).balanceOf(address(this)));
+    function balanceCompoundV2(address _compoundAddress) public returns (uint256) {
+        return ICompoundV2(_compoundAddress).balanceOfUnderlying(address(this));
     }
 
     function balanceCompoundV3(address _compoundAddress) public view returns (uint256) {
@@ -147,7 +146,7 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
         return IERC20(token).balanceOf(address(this));
     }
 
-    function totalTokenSupply() public view returns (uint256) {
+    function totalTokenSupply() public returns (uint256) {
         uint256 totalSupply = balanceToken();
         for (uint i = 0; i < aaveV2Addresses.length; i++) {
             totalSupply += balanceAaveV2(aaveV2Addresses[i]);
@@ -173,7 +172,8 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
             require(amount <= balanceToken(), "Insufficient balance");
         }
         require(IERC20(token).approve(aaveV2Addresses[aaveIndex], amount), "Transfer failed");
-        IAaveV2(aaveV2Addresses[aaveIndex]).supply(token, amount, address(this), 0);
+        console.log("Approve AaveV2");
+        IAaveV2(aaveV2Addresses[aaveIndex]).deposit(token, amount, address(this), 0);
     }
 
     function withdrawAaveV2(uint aaveIndex, uint256 amount) external onlyAdmin {
@@ -196,7 +196,8 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
             require(amount <= balanceToken(), "Insufficient balance");
         }
         require(IERC20(token).approve(aaveV3Addresses[aaveIndex], amount), "Transfer failed");
-        IAaveV3(aaveV3Addresses[aaveIndex]).supply(token, amount, address(this), 0);
+        console.log("Approve AaveV3");
+        IAaveV3(aaveV3Addresses[aaveIndex]).deposit(token, amount, address(this), 0);
     }
 
     function withdrawAaveV3(uint aaveIndex, uint256 amount) external onlyAdmin {
