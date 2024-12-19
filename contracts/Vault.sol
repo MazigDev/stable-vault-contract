@@ -6,7 +6,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IAaveV2, IAaveV3, DataTypes} from "./IAave.sol";
 import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
-import {console} from "hardhat/console.sol";
 
 contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
@@ -46,7 +45,6 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(checkSortedArray(_array), "Aave vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
             DataTypes.ReserveData memory reserve = IAaveV2(_array[i]).getReserveData(token);
-            console.log(reserve.aTokenAddress);
             require(reserve.aTokenAddress != address(0), string(abi.encodePacked("Invalid Aave address: ", _array[i])));
         }
     }
@@ -55,7 +53,6 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(checkSortedArray(_array), "Aave vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
             DataTypes.ReserveDataLegacy memory reserve = IAaveV3(_array[i]).getReserveData(token);
-            console.log(reserve.aTokenAddress);
             require(reserve.aTokenAddress != address(0), string(abi.encodePacked("Invalid Aave address: ", _array[i])));
         }
     }
@@ -85,7 +82,6 @@ contract Vault is Initializable, ERC20Upgradeable {
         address[] memory _compoundV3Addresses
     ) public initializer {
         __ERC20_init(_name, _symbol);
-        console.log("Vault initializing");
         owner = msg.sender;
         admin = _admin;
         token = _token;
@@ -97,7 +93,6 @@ contract Vault is Initializable, ERC20Upgradeable {
         aaveV3Addresses = _aaveV3Addresses;
         compoundV2Addresses = _compoundV2Addresses;
         compoundV3Addresses = _compoundV3Addresses;
-        console.log("Vault initialized");
     }
 
     function setAdmin(address _newAdmin) external onlyOwner {
@@ -172,7 +167,6 @@ contract Vault is Initializable, ERC20Upgradeable {
             require(amount <= balanceToken(), "Insufficient balance");
         }
         require(IERC20(token).approve(aaveV2Addresses[aaveIndex], amount), "Transfer failed");
-        console.log("Approve AaveV2");
         IAaveV2(aaveV2Addresses[aaveIndex]).deposit(token, amount, address(this), 0);
     }
 
@@ -196,7 +190,6 @@ contract Vault is Initializable, ERC20Upgradeable {
             require(amount <= balanceToken(), "Insufficient balance");
         }
         require(IERC20(token).approve(aaveV3Addresses[aaveIndex], amount), "Transfer failed");
-        console.log("Approve AaveV3");
         IAaveV3(aaveV3Addresses[aaveIndex]).deposit(token, amount, address(this), 0);
     }
 
@@ -259,7 +252,7 @@ contract Vault is Initializable, ERC20Upgradeable {
 
     function deposit(uint256 amount) external {
         if (totalSupply() == 0) {
-            _mint(msg.sender, amount);
+            _mint(msg.sender, amount * (10 ** 18));
         }
         else {
             uint256 shares = (amount * totalSupply()) / totalTokenSupply();
@@ -276,18 +269,11 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function distribute(address to, uint256 amountLp) external onlyAdmin {
-        if (amountLp == MAX_UINT) {
-            amountLp = distributeAmount[to];
-        }
-        else {
-            require(amountLp <= distributeAmount[to], "Insufficient balance");
-        }
+        require(amountLp <= distributeAmount[to], "Insufficient balance");
         distributeAmount[to] -= amountLp;
         uint256 amount = (amountLp * totalTokenSupply()) / totalSupply();
         require(IERC20(token).transfer(to, amount), "Transfer failed");
         _burn(msg.sender, amountLp);
     }
-
-
 }
 
