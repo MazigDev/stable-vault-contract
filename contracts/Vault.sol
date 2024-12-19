@@ -287,6 +287,5 @@ contract Vault is Initializable, ERC20Upgradeable, ExponentialNoError {
         _burn(msg.sender, amountLp);
     }
 
-
 }
 
