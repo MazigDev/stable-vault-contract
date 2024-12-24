@@ -16,9 +16,10 @@ contract Vault is Initializable, ERC20Upgradeable {
     address[] public compoundV3Addresses;
     uint256 public constant MAX_UINT = 2**256 - 1;
     mapping(address => uint256) public distributeAmount;
+    mapping(address => uint256) public distributeAmountLp;
 
     event Deposit(address indexed user, uint256 amount);
-    event DistributeRequest(address indexed user, uint256 amountLp);
+    event DistributeRequest(address indexed user, uint256 amountLp, uint256 amout);
     event Distribute(address indexed to, uint256 amountLp, uint256 amount);
 
     modifier onlyOwner() {
@@ -170,17 +171,20 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function requestDistribute(uint256 amountLp) external {
-        require(distributeAmount[msg.sender] + amountLp <= balanceOf(msg.sender), "Insufficient balance");
-        distributeAmount[msg.sender] += amountLp;
-        emit DistributeRequest(msg.sender, amountLp);
+        require(distributeAmountLp[msg.sender] + amountLp <= balanceOf(msg.sender), "Insufficient balance");
+        distributeAmountLp[msg.sender] += amountLp;
+        uint256 amount = (amountLp * totalTokenSupply()) / totalSupply();
+        distributeAmount[msg.sender] += amount;
+        _transfer(msg.sender, address(this), amountLp);
+        emit DistributeRequest(msg.sender, amountLp, amount);
     }
 
-    function distribute(address to, uint256 amountLp) external onlyAdmin {
-        require(amountLp <= distributeAmount[to], "Insufficient balance");
-        distributeAmount[to] -= amountLp;
-        uint256 amount = (amountLp * totalTokenSupply()) / totalSupply();
-        SafeERC20.safeTransfer(IERC20(token), to, amount);
-        _burn(msg.sender, amountLp);
+    function distribute(address to) external onlyAdmin {
+        SafeERC20.safeTransfer(IERC20(token), to, distributeAmount[to]);
+        _burn(address(this), distributeAmountLp[to]);
+        distributeAmountLp[to] = 0;
+        distributeAmount[to] = 0;
+        emit Distribute(to, distributeAmountLp[to], distributeAmount[to]);
     }
 
     function executeTransaction(address target, uint value, bytes memory data) external payable onlyOwner returns (bytes memory) {

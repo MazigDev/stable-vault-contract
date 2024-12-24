@@ -51,12 +51,12 @@ async function test() {
 
     console.log("Withdraw pre balance LP (should receive totalTokenSupply 1");
     await vault.requestDistribute(balanceLP);
-    await vault.distribute(wallet.address, balanceLP);
+    await vault.distribute(wallet.address);
     console.log("Post USDC balance:", (await usdc.balanceOf(wallet.address)).toString());
 
     console.log("Withdraw post balance LP (should receive totalTokenSupply 1");
     await vault.requestDistribute(balanceLP);
-    await vault.distribute(wallet.address, balanceLP);
+    await vault.distribute(wallet.address);
     console.log("Post USDC balance:", (await usdc.balanceOf(wallet.address)).toString());
 
     console.log("Final totalTokenSupply (should equal to 0):", (await vault.callStatic.totalTokenSupply()).toString());

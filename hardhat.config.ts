@@ -3,6 +3,8 @@ import "@typechain/hardhat";
 import "@nomiclabs/hardhat-ethers";
 import "@openzeppelin/hardhat-upgrades";
 import "hardhat-gas-reporter";
+import "@nomiclabs/hardhat-waffle";
+import '@typechain/hardhat'
 
 // import "@openzeppelin/contracts-upgradeable";
 import dotenv from "dotenv";
@@ -15,7 +17,7 @@ const config: HardhatUserConfig = {
     enabled: true,                // Bật báo cáo gas
     currency: "USD",              // Đơn vị tiền tệ
     gasPrice: 0.0000000004, 
-               // Giá gas mặc định
+    forceTerminalOutputFormat: "legacy"
   },
   networks: {
     hardhat: {
