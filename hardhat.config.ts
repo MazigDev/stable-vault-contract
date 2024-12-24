@@ -25,11 +25,20 @@ const config: HardhatUserConfig = {
       },
       accounts: [
         {
-          privateKey: "0xdcaebd58156b8a2805d9392c1c32c04e250044f8365d7db312f1f4fecaa819ba",
+          privateKey: "0x59c6995e998f97a5a0044975f1acbee8f4d78b49d8d2a6ef1b3e5e4a6f5d1b66",
+          balance: "10000000000000000000000" // 10,000 ETH
+        },
+        {
+          privateKey: "0x2f8c7cf025070afe2f7b3d7fcdd9a0d073c4053b1a1d6b9985d642a08db7e13a",
+          balance: "10000000000000000000000" // 10,000 ETH
+        },
+        {
+          privateKey: "0x1cdeb77d109ab2530c4822d9e2f39ab9e050c69a5d080c2914dbe084c9eea481",
           balance: "10000000000000000000000" // 10,000 ETH
         }
       ],
-      allowUnlimitedContractSize: true
+      allowUnlimitedContractSize: true,
+      gasPrice: 10000000000,
     },
     ethereum: {
       url: "https://eth.drpc.org",

@@ -10,8 +10,8 @@ async function test() {
     const vault = Vault__factory.connect(parsed.vault, wallet);
     const usdc = ERC20__factory.connect(parsed.token, wallet);
     const MAX_UINT = ethers.BigNumber.from(2).pow(256).sub(1);
-
-    console.log((await vault.callStatic.totalTokenSupply()).toString());
+    console.log("Vault address:", vault.address);
+    console.log((await vault.totalTokenSupply()).toString());
 
     // ? deposit
     await usdc.approve(vault.address, 1_600_000_000);
@@ -20,8 +20,6 @@ async function test() {
     // ? supply
     await vault.supplyAaveV3(0, 400_000_000);
     await vault.supplyCompoundV3(0, 400_000_000);
-    await vault.supplyAaveV2(0, 400_000_000);
-    await vault.supplyCompoundV2(0, 400_000_000);
 
     console.log("Init total token supply:", (await vault.callStatic.totalTokenSupply()).toString())
 
@@ -31,16 +29,12 @@ async function test() {
         await ethers.provider.send("evm_mine", []);
     }
 
-    console.log("APR Aave V2:", (await vault.balanceAaveV2((await vault.aaveV2Addresses(0)))).toNumber() / 400_000_000 - 1)
     console.log("APR Aave V3:", (await vault.balanceAaveV3((await vault.aaveV3Addresses(0)))).toNumber() / 400_000_000 - 1)
-    console.log("APR Compound V2:", (await vault.callStatic.balanceCompoundV2((await vault.compoundV2Addresses(0)))).toNumber() / 400_000_000 - 1)
     console.log("APR Compound V3:", (await vault.balanceCompoundV3((await vault.compoundV3Addresses(0)))).toNumber() / 400_000_000 - 1)
 
     // ? withdraw
     await vault.withdrawAaveV3(0, MAX_UINT);
     await vault.withdrawCompoundV3(0, MAX_UINT);
-    await vault.withdrawAaveV2(0, MAX_UINT);
-    await vault.withdrawCompoundV2(0, MAX_UINT);
 
     const totalTokenSupply = await vault.callStatic.totalTokenSupply();
     console.log("totalTokenSupply 1:", totalTokenSupply.toString())
@@ -69,6 +63,6 @@ async function test() {
 }
 
 test().catch((error) => {
-  console.error(error);
-  process.exit(1);
+    console.error(error);
+    process.exit(1);
 });
