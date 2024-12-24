@@ -188,5 +188,9 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(success, "Transaction failed");
         return result;
     }
+
+    function balanceTokenOf(address from) external view returns (uint256) {
+        return balanceOf(from) * totalTokenSupply() / totalSupply();
+    }
 }
 
