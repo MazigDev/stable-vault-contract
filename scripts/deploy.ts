@@ -18,12 +18,8 @@ async function test() {
     const admin = wallet.address;
     const aaveV2Addresses = ["0x7d2768dE32b0b80b7a3454c06BdAc94A69DDc7A9"];
     const aaveV3Addresses = ["0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"];
-    const compoundV2Addresses = ["0x39AA39c021dfbaE8faC545936693aC917d5E7563"]
-    const compoundV3Addresses = ["0xc3d688B66703497DAA19211EEdff47f25384cdc3"]
-    // const aaveV2Addresses: any = [];
-    // const aaveV3Addresses = ["0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2"];
-    // const compoundV2Addresses: any = []
-    // const compoundV3Addresses = ["0xc3d688B66703497DAA19211EEdff47f25384cdc3"]
+    const compoundV2Addresses = ["0x39AA39c021dfbaE8faC545936693aC917d5E7563"];
+    const compoundV3Addresses = ["0xc3d688B66703497DAA19211EEdff47f25384cdc3"];
     const vaultDeploy = await upgrades.deployProxy(vaultFatory, [name, symbol, admin, token, aaveV2Addresses, aaveV3Addresses, compoundV2Addresses, compoundV3Addresses], { initializer: "initialize"  });
     const vault = await vaultDeploy.deployed();
 
