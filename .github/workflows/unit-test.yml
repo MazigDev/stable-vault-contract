@@ -26,7 +26,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v3
         with:
-          node-version: 16 # Chọn phiên bản Node.js phù hợp với dự án của bạn
+          node-version: 18
 
       # 3. Cài đặt dependencies
       - name: Install dependencies
