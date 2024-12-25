@@ -175,6 +175,9 @@ describe("Vault initialize in Ethereum", function () {
         ).to.be.revertedWith("Compound v3 vaults not sorted");
 
     });
-    
+
+    it("Fail test", async function () {
+        expect(1).to.equal(2);
+    });
 });
  
