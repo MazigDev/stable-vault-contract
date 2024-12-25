@@ -6,21 +6,23 @@ export const NETWORK_CONFIG = {
                 decimals: 6,
             },
             USDC: {
-                address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eb48", // Mainnet USDC
+                address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // Mainnet USDC
                 decimals: 6,
             },
         },
         LENDING_POOLS: {
             AAVE: {
+                pool: "0x87870Bca3F3fD6335C3F4ce8392D69350B4fA4E2", // Aave V3 Pool
                 lendingPoolAddressProvider: "0xb53C1a33016B2DC2fF3653530bFF1848a515c8c5", // Aave Lending Pool
                 dataProvider: "0x057835Ad21a177dbdd3090bB1CAE03EaCF78Fc6d", // Aave Protocol Data Provider
             },
             COMPOUND: {
-                cUSDT: "0xf650C3d88Cc861C1dF7bA4072b6360d2fD5Df0D3", // Compound cUSDT
-                cUSDC: "0x39AA39c021dfbaE8faC545936693aC917d5E7563", // Compound cUSDC
+                cUSDT: "0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840", // Compound cUSDT
+                cUSDC: "0xc3d688B66703497DAA19211EEdff47f25384cdc3", // Compound cUSDC
                 comptroller: "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B", // Compound Comptroller
             },
         },
+        UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap V2 Router
     },
     BSC: {
         TOKENS: {
@@ -40,5 +42,6 @@ export const NETWORK_CONFIG = {
                 comptroller: "0xfD36E2c2a6789Db23113685031d7F16329158384", // Venus Comptroller
             },
         },
+        UNISWAP_V2_ROUTER: "0x4752ba5dbc23f44d87826276bf6fd6b1c372ad24", // Uniswap V2 Router
     },
 };

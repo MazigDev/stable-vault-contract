@@ -1,0 +1,45 @@
+# .github/workflows/unit-test.yml
+
+name: Unit Tests
+
+# Kích hoạt workflow khi có push lên nhánh `feature/unit_test`
+on:
+  push:
+    branches:
+      - feature/unit_test
+  pull_request:
+    branches:
+      - feature/unit_test
+
+# Định nghĩa các job trong workflow
+jobs:
+  run-tests:
+    name: Run Unit Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out mã nguồn từ repo
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      # 2. Cài đặt Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16 # Chọn phiên bản Node.js phù hợp với dự án của bạn
+
+      # 3. Cài đặt dependencies
+      - name: Install dependencies
+        run: npm install
+
+      # 4. Chạy unit tests
+      - name: Run tests
+        run: npm test
+
+      # 5. Lưu báo cáo test (nếu có)
+      - name: Archive test results
+        if: ${{ always() }}
+        uses: actions/upload-artifact@v3
+        with:
+          name: test-results
+          path: test-results/

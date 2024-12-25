@@ -7,6 +7,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IAaveV2, IAaveV3, DataTypes} from "./IAave.sol";
 import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 import "hardhat/console.sol";
 contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
@@ -44,14 +45,30 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(checkSortedArray(_array), "Aave vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
             DataTypes.ReserveDataLegacy memory reserve = IAaveV3(_array[i]).getReserveData(token);
-            require(reserve.aTokenAddress != address(0), string(abi.encodePacked("Invalid Aave address: ", _array[i])));
+            require(
+                reserve.aTokenAddress != address(0),
+                string(
+                    abi.encodePacked(
+                        "Invalid Aave v3 address: ",
+                        Strings.toHexString(uint160(_array[i]), 20)
+                    )  
+                )
+            );
         }
     }
 
     function checkCompoundV3Addresses(address[] memory _array) internal view {
         require(checkSortedArray(_array), "Compound v3 vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
-            require(ICompoundV3(_array[i]).baseToken() == token, string(abi.encodePacked("Invalid Compound v3 address: ", _array[i])));
+            require(
+                ICompoundV3(_array[i]).baseToken() == token,
+                string(
+                    abi.encodePacked(
+                        "Invalid Compound v3 address: ",
+                        Strings.toHexString(uint160(_array[i]), 20)
+                    )
+                )
+            );
         }
     }
 
