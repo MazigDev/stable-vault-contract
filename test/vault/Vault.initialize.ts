@@ -176,8 +176,5 @@ describe("Vault initialize in Ethereum", function () {
 
     });
 
-    it("Fail test", async function () {
-        expect(1).to.equal(2);
-    });
 });
  
