@@ -4,8 +4,8 @@ import {IERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {IAaveV2, IAaveV3, DataTypes} from "./IAave.sol";
-import {ICompoundV2} from "./ICompoundV2.sol";
+import {IAaveV3, DataTypes} from "./IAave.sol";
+// import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
 import "hardhat/console.sol";
 contract Vault is Initializable, ERC20Upgradeable {
@@ -171,7 +171,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function requestDistribute(uint256 amountLp) external {
-        require(distributeAmountLp[msg.sender] + amountLp <= balanceOf(msg.sender), "Insufficient balance");
+        require(amountLp <= balanceOf(msg.sender), "Insufficient balance");
         distributeAmountLp[msg.sender] += amountLp;
         uint256 amount = (amountLp * totalTokenSupply()) / totalSupply();
         distributeAmount[msg.sender] += amount;

@@ -21,6 +21,24 @@ interface IAaveV3 {
       uint256 ltv,
       uint256 healthFactor
     );
+    function getReserveDataExtended(
+        address asset
+    ) external view returns (DataTypes.ReserveData memory);
+}
+
+interface InterestRateStrategy {
+    struct InterestRateDataRay {
+        uint256 optimalUsageRatio;
+        uint256 baseVariableBorrowRate;
+        uint256 variableRateSlope1;
+        uint256 variableRateSlope2;
+    }
+
+    function calculateInterestRates(
+        DataTypes.CalculateInterestRatesParams memory params
+    ) external view returns (uint256, uint256);
+    
+    function getInterestRateData(address reserve) external view returns (InterestRateDataRay memory);
 }
 
 library DataTypes {
@@ -66,23 +84,36 @@ library DataTypes {
     ReserveConfigurationMap configuration;
     //the liquidity index. Expressed in ray
     uint128 liquidityIndex;
-    //variable borrow index. Expressed in ray
-    uint128 variableBorrowIndex;
     //the current supply rate. Expressed in ray
     uint128 currentLiquidityRate;
+    //variable borrow index. Expressed in ray
+    uint128 variableBorrowIndex;
     //the current variable borrow rate. Expressed in ray
     uint128 currentVariableBorrowRate;
-    //the current stable borrow rate. Expressed in ray
-    uint128 currentStableBorrowRate;
+    // DEPRECATED on v3.2.0
+    uint128 __deprecatedStableBorrowRate;
+    //timestamp of last update
     uint40 lastUpdateTimestamp;
-    //tokens addresses
+    //the id of the reserve. Represents the position in the list of the active reserves
+    uint16 id;
+    //timestamp until when liquidations are not allowed on the reserve, if set to past liquidations will be allowed
+    uint40 liquidationGracePeriodUntil;
+    //aToken address
     address aTokenAddress;
-    address stableDebtTokenAddress;
+    // DEPRECATED on v3.2.0
+    address __deprecatedStableDebtTokenAddress;
+    //variableDebtToken address
     address variableDebtTokenAddress;
     //address of the interest rate strategy
     address interestRateStrategyAddress;
-    //the id of the reserve. Represents the position in the list of the active reserves
-    uint8 id;
+    //the current treasury balance, scaled
+    uint128 accruedToTreasury;
+    //the outstanding unbacked aTokens minted through the bridging feature
+    uint128 unbacked;
+    //the outstanding debt borrowed against this asset in isolation mode
+    uint128 isolationModeTotalDebt;
+    //the amount of underlying accounted for by the protocol
+    uint128 virtualUnderlyingBalance;
   }
 
   struct ReserveConfigurationMap {
@@ -110,4 +141,45 @@ library DataTypes {
 
     uint256 data;
   }
+
+  struct CalculateInterestRatesParams {
+    uint256 unbacked;
+    uint256 liquidityAdded;
+    uint256 liquidityTaken;
+    uint256 totalDebt;
+    uint256 reserveFactor;
+    address reserve;
+    bool usingVirtualBalance;
+    uint256 virtualUnderlyingBalance;
+  }
+}
+
+interface AaveProtocolDataProvider {
+    function getReserveCaps(address asset) external view returns (uint256 borrowCap, uint256 supplyCap);
+    function getReserveData(address asset) external view returns (
+            uint256 unbacked,
+            uint256 accruedToTreasuryScaled,
+            uint256 totalAToken,
+            uint256 totalStableDebt,
+            uint256 totalVariableDebt,
+            uint256 liquidityRate,
+            uint256 variableBorrowRate,
+            uint256 stableBorrowRate,
+            uint256 averageStableBorrowRate,
+            uint256 liquidityIndex,
+            uint256 variableBorrowIndex,
+            uint40 lastUpdateTimestamp
+        );
+    function getReserveConfigurationData(address asset) external view returns (
+            uint256 decimals,
+            uint256 ltv,
+            uint256 liquidationThreshold,
+            uint256 liquidationBonus,
+            uint256 reserveFactor,
+            bool usageAsCollateralEnabled,
+            bool borrowingEnabled,
+            bool stableBorrowRateEnabled,
+            bool isActive,
+            bool isFrozen
+        );
 }
