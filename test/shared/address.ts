@@ -9,6 +9,11 @@ export const NETWORK_CONFIG = {
                 address: "0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48", // Mainnet USDC
                 decimals: 6,
             },
+            NATIVE: {
+                address: "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", // Mainnet WETH
+                decimals: 18,
+                name: "WETH",
+            }
         },
         LENDING_POOLS: {
             AAVE: {
@@ -21,6 +26,11 @@ export const NETWORK_CONFIG = {
                 cUSDC: "0xc3d688B66703497DAA19211EEdff47f25384cdc3", // Compound cUSDC
                 comptroller: "0x3d9819210A31b4961b30EF54bE2aeD79B9c9Cd3B", // Compound Comptroller
             },
+            VENUS: {
+                vUSDT: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Venus vUSDT
+                vUSDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Venus vUSDC
+                comptroller: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // Venus Comptroller
+            }
         },
         UNISWAP_V2_ROUTER: "0x7a250d5630B4cF539739dF2C5dAcb4c659F2488D", // Uniswap V2 Router
     },
@@ -34,8 +44,23 @@ export const NETWORK_CONFIG = {
                 address: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC USDC
                 decimals: 18,
             },
+            NATIVE: {
+                address: "0xbb4CdB9CBd36B01bD1cBaEBF2De08d9173bc095c", // BSC WBNB 
+                decimals: 18,
+                name: "WBNB",
+            }
         },
         LENDING_POOLS: {
+            AAVE: {
+                pool: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Aave V3 Pool
+                lendingPoolAddressProvider: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Aave Lending Pool
+                dataProvider: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Aave Protocol Data Provider
+            },
+            COMPOUND: {
+                cUSDT: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Compound cUSDT
+                cUSDC: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Compound cUSDC
+                comptroller: "0x8ac76a51cc950d9822d68b83fe1ad97b32cd580d", // BSC Compound Comptroller
+            },
             VENUS: {
                 vUSDT: "0xfD5840Cd36d94D7229439859C0112a4185BC0255", // Venus vUSDT
                 vUSDC: "0xeca88125a5adbe82614ffc12d0db554e2e2867c8", // Venus vUSDC

@@ -1,14 +1,14 @@
 import { ethers, upgrades } from "hardhat";
 import { Contract, ContractFactory, Signer } from "ethers";
 import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
-import { NETWORK_CONFIG } from "../../config/address";
+import { NETWORK_CONFIG } from "../shared/address";
 import { expect, use } from "chai";
 import { solidity } from "ethereum-waffle";
 use(solidity);
 describe("Vault initialize in Ethereum", function () {
     const network = "ETHEREUM";
     const CONFIG = NETWORK_CONFIG[network];
-    const { USDT, USDC } = CONFIG.TOKENS;
+    const { USDT, USDC , WETH} = CONFIG.TOKENS;
     const { AAVE, COMPOUND } = CONFIG.LENDING_POOLS;
 
     let usdtVault: Contract;
@@ -175,6 +175,5 @@ describe("Vault initialize in Ethereum", function () {
         ).to.be.revertedWith("Compound v3 vaults not sorted");
 
     });
-
 });
  

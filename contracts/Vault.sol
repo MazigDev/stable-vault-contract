@@ -82,7 +82,11 @@ contract Vault is Initializable, ERC20Upgradeable {
     ) public initializer {
         __ERC20_init(_name, _symbol);
         owner = msg.sender;
+        if (admin == address(0)) {
+            admin = owner;
+        }
         admin = _admin;
+        require(_token != address(0), "Invalid token address");
         token = _token;
         checkAaveV3Addresses(_aaveV3Addresses);
         checkCompoundV3Addresses(_compoundV3Addresses);
@@ -91,6 +95,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function setAdmin(address _newAdmin) external onlyOwner {
+        require(admin != address(0), "Invalid admin address");
         admin = _newAdmin;
     }
 

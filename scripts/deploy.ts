@@ -7,7 +7,12 @@ async function test() {
     const wallet = signers[0];
     const token = "0xdAC17F958D2ee523a2206206994597C13D831ec7";
     const router = IUniswapV2Router02__factory.connect("0x7a250d5630b4cf539739df2c5dacb4c659f2488d", wallet);
-    await router.swapExactETHForTokens(0, ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", token], wallet.address, "1000000000000000000", { value: ethers.utils.parseEther("1"), maxFeePerGas: "20564098716" });
+    await router.swapExactETHForTokens(
+      0,
+       ["0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2", token],
+        wallet.address, 
+        "1000000000000000000",
+         { value: ethers.utils.parseEther("1"), maxFeePerGas: "20564098716" });
     const usdc = ERC20__factory.connect(token, wallet);
     const balance = await usdc.balanceOf(wallet.address);
     console.log(balance.toString());
