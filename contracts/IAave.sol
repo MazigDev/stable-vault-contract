@@ -183,3 +183,7 @@ interface AaveProtocolDataProvider {
             bool isFrozen
         );
 }
+
+interface VariableDebtToken {
+    function scaledTotalSupply() external view returns (uint256);   
+}
