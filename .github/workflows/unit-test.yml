@@ -7,9 +7,11 @@ on:
   push:
     branches:
       - feature/unit_test
+      - main
   pull_request:
     branches:
       - feature/unit_test
+      - main
 
 # Định nghĩa các job trong workflow
 jobs:

@@ -1,12 +1,7 @@
 import { ethers, upgrades } from "hardhat";
 import { NETWORK_CONFIG } from "./address";
 
-const network = "ETHEREUM";
-const CONFIG = NETWORK_CONFIG[network];
-const { USDT, USDC, NATIVE } = CONFIG.TOKENS;
-const { AAVE, COMPOUND } = CONFIG.LENDING_POOLS;
-
-async function deployVaultFixture(
+export async function deployVaultFixture(
     network: string = "ETHEREUM"
 ) {
     const CONFIG = NETWORK_CONFIG[network as keyof typeof NETWORK_CONFIG];
@@ -80,6 +75,11 @@ async function deployVaultFixture(
         owner,
         admin,
         users: [user1, user2, user3],
+        USDC,
+        USDT,
+        NATIVE,
+        COMPOUND,
+        AAVE
     };
 }
 

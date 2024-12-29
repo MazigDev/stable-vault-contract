@@ -1,79 +1,13 @@
 import { ethers, upgrades } from "hardhat";
 import { Contract, ContractFactory, Signer } from "ethers";
-import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { NETWORK_CONFIG } from "../shared/address";
 import { expect, use } from "chai";
 import { solidity } from "ethereum-waffle";
+import { setupBlockchainSnapshot, deployVaultFixture } from "../shared/setup";
 use(solidity);
 describe("Vault initialize in Ethereum", function () {
-    const network = "ETHEREUM";
-    const CONFIG = NETWORK_CONFIG[network];
-    const { USDT, USDC , WETH} = CONFIG.TOKENS;
-    const { AAVE, COMPOUND } = CONFIG.LENDING_POOLS;
-
-    let usdtVault: Contract;
-    let usdtContract: Contract;
-
-    let usdcVault: Contract;
-    let usdcContract: Contract;
-
-    let vaultFactory: ContractFactory;
-    let router: Contract;
-    let aaveV3Pool: Contract;
-    let compoundV3UsdtPool: Contract;
-
-    let owner: Signer;
-    let admin: Signer;
-    let users: [Signer, Signer, Signer];
-
-    async function deployVaultFixture() {
-        const usdtContract = await ethers.getContractAt("IERC20", USDT.address);
-        const usdcContract = await ethers.getContractAt("IERC20", USDC.address);
-
-        const [owner, admin, user1, user2, user3] = await ethers.getSigners();
-
-        const aaveV3Pool = await ethers.getContractAt("IAaveV3", AAVE.pool);
-        const compoundV3UsdtPool = await ethers.getContractAt("ICompoundV3", COMPOUND.cUSDT);
-        const compoundV3UsdcPool = await ethers.getContractAt("ICompoundV3", COMPOUND.cUSDC);
-
-        const vaultFactory = await ethers.getContractFactory("Vault");
-        const name = "MAZIG Vault";
-        const symbol = "MAZIG";
-
-        const vaultUSDTDeploy = await upgrades.deployProxy(
-            vaultFactory,
-            [name, symbol, admin.address, USDT.address, [AAVE.pool], [COMPOUND.cUSDT]],
-            { initializer: "initialize" }
-        );
-        const usdtVault = await vaultUSDTDeploy.deployed();
-
-        const vaultUSDCDeploy = await upgrades.deployProxy(
-            vaultFactory,
-            [name, symbol, admin.address, USDC.address, [AAVE.pool], [COMPOUND.cUSDC]],
-            { initializer: "initialize" }
-        );
-        const usdcVault = await vaultUSDCDeploy.deployed();
-
-        const router = await ethers.getContractAt("IUniswapV2Router02", CONFIG.UNISWAP_V2_ROUTER);
-
-        return {
-            name,
-            symbol,
-            usdtVault,
-            usdtContract,
-            usdcVault,
-            usdcContract,
-            vaultFactory,
-            router,
-            aaveV3Pool,
-            compoundV3UsdtPool,
-            compoundV3UsdcPool,
-            owner,
-            admin,
-            users: [user1, user2, user3],
-        };
-    }
-
+    setupBlockchainSnapshot();
+    
     it("should correctly initialize the vault contract", async function () {
         const {
             admin,
@@ -83,8 +17,10 @@ describe("Vault initialize in Ethereum", function () {
             name,
             symbol,
             usdcContract,
-            usdtContract
-        } = await loadFixture(deployVaultFixture);
+            usdtContract,
+            AAVE,
+            COMPOUND
+        } = await deployVaultFixture()
 
         expect(await usdtVault.name()).to.equal(name);
         expect(await usdtVault.symbol()).to.equal(symbol);
@@ -104,7 +40,7 @@ describe("Vault initialize in Ethereum", function () {
     });
 
     it("should revert if any Compound V3 address is invalid", async function () {
-        const { vaultFactory, name, symbol, admin } = await loadFixture(deployVaultFixture);
+        const { vaultFactory, name, symbol, admin, USDC, USDT } = await deployVaultFixture();
 
         // Wrong Compound V3 address with Weth pool
         const invalidCompoundAddresses = ["0xA17581A9E3356d9A858b789D68B4d866e593aE94"];
@@ -127,8 +63,7 @@ describe("Vault initialize in Ethereum", function () {
     });
 
     it("should revert if any Aave V3 address is invalid", async function () {
-        const { vaultFactory, name, symbol, admin, aaveV3Pool } = await loadFixture(deployVaultFixture);
-    
+        const { vaultFactory, name, symbol, admin, aaveV3Pool, USDC, USDT , AAVE} = await deployVaultFixture()
         // Invalid Aave V3 address (not a contract)
         const invalidAaveAddresses = ["0x000000000000000000000000000000000000dead"];
         await expect(
@@ -151,7 +86,7 @@ describe("Vault initialize in Ethereum", function () {
     });
     
     it("should revert if addresses are not sorted", async function () {
-        const { vaultFactory, name, symbol, admin } = await loadFixture(deployVaultFixture);
+        const { vaultFactory, name, symbol, admin, USDC, USDT } = await await deployVaultFixture();
     
         const unsortedAddresses = [
             "0x1111111111111111111111111111111111111111",
@@ -176,4 +111,3 @@ describe("Vault initialize in Ethereum", function () {
 
     });
 });
- 

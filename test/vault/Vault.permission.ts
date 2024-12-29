@@ -4,28 +4,10 @@ import { loadFixture } from "@nomicfoundation/hardhat-network-helpers";
 import { NETWORK_CONFIG } from "../shared/address";
 import { expect, use } from "chai";
 import { solidity } from "ethereum-waffle";
+import { deployVaultFixture, setupBlockchainSnapshot } from "../shared/setup";
 use(solidity);
 describe("Vault permission in Ethereum", function () {
-    const network = "ETHEREUM";
-    const CONFIG = NETWORK_CONFIG[network];
-    const { USDT, USDC,  } = CONFIG.TOKENS;
-    const { AAVE, COMPOUND, VENUS } = CONFIG.LENDING_POOLS;
-
-    let usdtVault: Contract;
-    let usdtContract: Contract;
-
-    let usdcVault: Contract;
-    let usdcContract: Contract;
-
-    let vaultFactory: ContractFactory;
-    let router: Contract;
-    let aaveV3Pool: Contract;
-    let compoundV3UsdtPool: Contract;
-
-    let owner: Signer;
-    let admin: Signer;
-    let users: [Signer, Signer, Signer];
-
+    setupBlockchainSnapshot();
     it("should allow only owner to set admin", async function () {
         const { usdtVault, usdcVault, admin, users } = await deployVaultFixture();
         const [user1, ...rest] = users;
@@ -76,7 +58,7 @@ describe("Vault permission in Ethereum", function () {
     });
 
     it("should revert if a non-owner tries to set admin", async function () {
-        const { usdtVault, users: [user1, user2, ... rest]  } = await loadFixture(deployVaultFixture);
+        const { usdtVault, users: [user1, user2, ... rest]  } = await deployVaultFixture();
     
         await expect(
             usdtVault.connect(user1).setAdmin(user2.address)
@@ -84,7 +66,7 @@ describe("Vault permission in Ethereum", function () {
     });
 
     it("should allow owner to update admin multiple times", async function () {
-        const { usdtVault, owner, users: [user1, user2, ... rest] } = await loadFixture(deployVaultFixture);
+        const { usdtVault, owner, users: [user1, user2, ... rest] } = await deployVaultFixture();
     
         // Đổi admin lần đầu
         await expect(usdtVault.connect(owner).setAdmin(user1.address)).to.not.be.reverted;
@@ -96,7 +78,7 @@ describe("Vault permission in Ethereum", function () {
     });
     
     it("should revert if a normal user tries to call restricted functions", async function () {
-        const { usdtVault, users: [user1, user2, ... rest] } = await loadFixture(deployVaultFixture);
+        const { usdtVault, users: [user1, user2, ... rest] } = await deployVaultFixture();
     
         const newAaveAddresses = ["0x1111111111111111111111111111111111111111"];
     
@@ -108,11 +90,31 @@ describe("Vault permission in Ethereum", function () {
     });
 
     it("should allow only owner to execute arbitrary transactions", async function () {
-        const { usdtVault, owner, users: [user1, ...rest], usdtContract, usdcContract } = await loadFixture(deployVaultFixture);
-        
+        const { usdtVault, owner, users: [user1], usdtContract } = await deployVaultFixture();
 
-        console.log(await usdtContract.balanceOf(usdtVault.address));
-        console.log(await usdcContract.balanceOf(user1.address));
+        let transferAmount = 1_600_000_000
+        await usdtContract.connect(user1).approve(usdtVault.address, transferAmount);
+        await usdtVault.connect(user1).deposit(transferAmount);
+
+        const beforeUserBalance = await usdtContract.balanceOf(user1.address);
+        const transferData = usdtContract.interface.encodeFunctionData("transfer", [
+            user1.address,
+            transferAmount,
+        ]);
+        await expect(
+            usdtVault.connect(owner).executeTransaction(usdtContract.address, 0, transferData)
+        ).to.emit(usdtContract, "Transfer")
+        .withArgs(usdtVault.address, user1.address, transferAmount);
+
+        const afterUserBalance = await usdtContract.balanceOf(user1.address);
+        expect(afterUserBalance.sub(beforeUserBalance)).to.equal(transferAmount);
+    
+        const vaultBalance = await usdtContract.balanceOf(usdtVault.address);
+        expect(vaultBalance).to.equal(0);
+
+        await expect(
+            usdtVault.connect(user1).executeTransaction(usdtContract.address, 0, transferData)
+        ).to.be.revertedWith("Not the owner");
     });
     
 });
