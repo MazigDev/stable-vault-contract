@@ -4,10 +4,9 @@
   "main": "index.js",
   "scripts": {
     "prescript": "hardhat compile && typechain --target ethers-v5 --out-dir ./typechain './artifacts/!(build-info)/**/!(*.dbg).json'",
-    "pretest": "npm run prescript",
     "script": "hardhat run --network localhost",
-    "test": "hardhat test --network localhost",
-    "compile": "hardhat compile && typechain --target ethers-v5 --out-dir ./typechain './artifacts/!(build-info)/**/!(*.dbg).json'"
+    "compile": "hardhat compile && typechain --target ethers-v5 --out-dir ./typechain './artifacts/!(build-info)/**/!(*.dbg).json'",
+    "test": "hardhat test"
   },
   "keywords": [],
   "author": "",
@@ -20,14 +19,18 @@
     "@nomiclabs/hardhat-web3": "^2.0.0",
     "@typechain/ethers-v5": "^11.1.2",
     "@typechain/hardhat": "^7.0.0",
+    "@types/chai": "^5.0.1",
     "@types/mocha": "^10.0.10",
+    "chai": "^4.2.0",
     "hardhat": "^2.14.0",
     "hardhat-gas-reporter": "^2.2.2",
+    "mocha": "^11.0.1",
     "ts-node": "^10.9.2",
     "typechain": "^8.3.2",
     "web3": "^1.10.4"
   },
   "dependencies": {
+    "@nomicfoundation/hardhat-network-helpers": "^1.0.12",
     "@openzeppelin/contracts": "^5.1.0",
     "@openzeppelin/contracts-upgradeable": "^5.1.0",
     "@openzeppelin/hardhat-upgrades": "^1.28.0",
@@ -35,7 +38,6 @@
     "@safe-global/protocol-kit": "^5.0.4",
     "@safe-global/sdk-starter-kit": "^1.0.4",
     "@types/node": "^22.10.2",
-    "chai": "^5.1.2",
     "dotenv": "^16.4.7",
     "ethers": "^5.7.2",
     "semver": "^7.6.3",

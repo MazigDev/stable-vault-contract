@@ -7,7 +7,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {IAaveV3, DataTypes} from "./IAave.sol";
 // import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
-import "hardhat/console.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
     address public admin;
@@ -45,14 +45,30 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(checkSortedArray(_array), "Aave vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
             DataTypes.ReserveDataLegacy memory reserve = IAaveV3(_array[i]).getReserveData(token);
-            require(reserve.aTokenAddress != address(0), string(abi.encodePacked("Invalid Aave address: ", _array[i])));
+            require(
+                reserve.aTokenAddress != address(0),
+                string(
+                    abi.encodePacked(
+                        "Invalid Aave v3 address: ",
+                        Strings.toHexString(uint160(_array[i]), 20)
+                    )  
+                )
+            );
         }
     }
 
     function checkCompoundV3Addresses(address[] memory _array) internal view {
         require(checkSortedArray(_array), "Compound v3 vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
-            require(ICompoundV3(_array[i]).baseToken() == token, string(abi.encodePacked("Invalid Compound v3 address: ", _array[i])));
+            require(
+                ICompoundV3(_array[i]).baseToken() == token,
+                string(
+                    abi.encodePacked(
+                        "Invalid Compound v3 address: ",
+                        Strings.toHexString(uint160(_array[i]), 20)
+                    )
+                )
+            );
         }
     }
 
@@ -66,7 +82,11 @@ contract Vault is Initializable, ERC20Upgradeable {
     ) public initializer {
         __ERC20_init(_name, _symbol);
         owner = msg.sender;
+        if (admin == address(0)) {
+            admin = owner;
+        }
         admin = _admin;
+        require(_token != address(0), "Invalid token address");
         token = _token;
         checkAaveV3Addresses(_aaveV3Addresses);
         checkCompoundV3Addresses(_compoundV3Addresses);
@@ -75,6 +95,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function setAdmin(address _newAdmin) external onlyOwner {
+        require(admin != address(0), "Invalid admin address");
         admin = _newAdmin;
     }
 
