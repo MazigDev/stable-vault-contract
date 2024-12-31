@@ -59,7 +59,16 @@ const config: HardhatUserConfig = {
     //     count: 20,
     //     passphrase: "",
     //   }
-    // }
+    // },
+    sepolia: {
+      url: "https://eth-sepolia.public.blastapi.io",
+      accounts: {
+        mnemonic: process.env.TEST_MNEMONIC,
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+      }
+    }
   },
   typechain: {
     outDir: "typechain",

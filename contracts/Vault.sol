@@ -8,6 +8,9 @@ import {IAaveV3, DataTypes} from "./IAave.sol";
 // import {ICompoundV2} from "./ICompoundV2.sol";
 import {ICompoundV3} from "./ICompoundV3.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
+import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
+import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
+
 contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
     address public admin;
@@ -75,18 +78,28 @@ contract Vault is Initializable, ERC20Upgradeable {
     function initialize(
         string memory _name, 
         string memory _symbol, 
+        address _owner,
         address _admin,
         address _token,
         address[] memory _aaveV3Addresses,
         address[] memory _compoundV3Addresses
     ) public initializer {
         __ERC20_init(_name, _symbol);
-        owner = msg.sender;
-        if (admin == address(0)) {
+        
+        if (_owner == address(0)) {
+            owner = msg.sender;
+        }
+        else {
+            owner = _owner;
+        }
+
+        if (_admin == address(0)) {
             admin = owner;
         }
-        admin = _admin;
-        require(_token != address(0), "Invalid token address");
+        else {
+            admin = _admin;
+        }
+        require(IERC20(_token).totalSupply() > 0, "Invalid token address");
         token = _token;
         checkAaveV3Addresses(_aaveV3Addresses);
         checkCompoundV3Addresses(_compoundV3Addresses);
@@ -203,9 +216,9 @@ contract Vault is Initializable, ERC20Upgradeable {
     function distribute(address to) external onlyAdmin {
         SafeERC20.safeTransfer(IERC20(token), to, distributeAmount[to]);
         _burn(address(this), distributeAmountLp[to]);
+        emit Distribute(to, distributeAmountLp[to], distributeAmount[to]);
         distributeAmountLp[to] = 0;
         distributeAmount[to] = 0;
-        emit Distribute(to, distributeAmountLp[to], distributeAmount[to]);
     }
 
     function executeTransaction(address target, uint value, bytes memory data) external payable onlyOwner returns (bytes memory) {

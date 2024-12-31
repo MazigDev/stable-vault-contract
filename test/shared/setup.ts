@@ -47,14 +47,14 @@ export async function deployVaultFixture(
 
     const vaultUSDTDeploy = await upgrades.deployProxy(
         vaultFactory,
-        [name, symbol, admin.address, USDT.address, [AAVE.pool], [COMPOUND.cUSDT]],
+        [name, symbol, owner.address, admin.address, USDT.address, [AAVE.pool], [COMPOUND.cUSDT]],
         { initializer: "initialize" }
     );
     const usdtVault = await vaultUSDTDeploy.deployed();
 
     const vaultUSDCDeploy = await upgrades.deployProxy(
         vaultFactory,
-        [name, symbol, admin.address, USDC.address, [AAVE.pool], [COMPOUND.cUSDC]],
+        [name, symbol, owner.address, admin.address, USDC.address, [AAVE.pool], [COMPOUND.cUSDC]],
         { initializer: "initialize" }
     );
     const usdcVault = await vaultUSDCDeploy.deployed();

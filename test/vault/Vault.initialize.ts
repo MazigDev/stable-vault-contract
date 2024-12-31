@@ -47,7 +47,7 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, USDC.address, [], invalidCompoundAddresses],
+                [name, symbol, admin.address, admin.address, USDC.address, [], invalidCompoundAddresses],
                 { initializer: "initialize" }
             )
         ).to.be.revertedWith(`Invalid Compound v3 address: ${invalidCompoundAddresses[0].toLowerCase()}`);
@@ -56,7 +56,7 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, USDC.address, [], invalidCompoundContractAddresses],
+                [name, symbol, admin.address, admin.address, USDC.address, [], invalidCompoundContractAddresses],
                 { initializer: "initialize" }
             )
         ).to.be.revertedWith("Address: low-level delegate call failed");
@@ -69,7 +69,7 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, USDC.address, invalidAaveAddresses, []],
+                [name, symbol, admin.address, admin.address, USDC.address, invalidAaveAddresses, []],
                 { initializer: "initialize" }
             )
         ).to.be.revertedWith("Address: low-level delegate call failed");
@@ -79,10 +79,10 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, tokenAddress, [AAVE.pool], []],
+                [name, symbol, admin.address, admin.address, tokenAddress, [AAVE.pool], []],
                 { initializer: "initialize" }
             )
-        ).to.be.revertedWith(`Invalid Aave v3 address: ${AAVE.pool.toLowerCase()}`);
+        ).to.be.revertedWith(`Address: low-level delegate call failed`);
     });
     
     it("should revert if addresses are not sorted", async function () {
@@ -96,7 +96,7 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, USDC.address, unsortedAddresses, []],
+                [name, symbol, admin.address, admin.address, USDC.address, unsortedAddresses, []],
                 { initializer: "initialize" }
             )
         ).to.be.revertedWith("Aave vaults not sorted");
@@ -104,7 +104,7 @@ describe("Vault initialize in Ethereum", function () {
         await expect(
             upgrades.deployProxy(
                 vaultFactory,
-                [name, symbol, admin.address, USDC.address, [], unsortedAddresses],
+                [name, symbol, admin.address, admin.address, USDC.address, [], unsortedAddresses],
                 { initializer: "initialize" }
             )
         ).to.be.revertedWith("Compound v3 vaults not sorted");

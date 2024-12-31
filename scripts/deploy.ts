@@ -25,7 +25,7 @@ async function test() {
     const compoundV3Addresses = ["0x3Afdc9BCA9213A35503b077a6072F3D0d5AB0840"];
     const vaultDeploy = await upgrades.deployProxy(
       vaultFatory,
-       [name, symbol, admin, token, aaveV3Addresses, compoundV3Addresses], 
+        [name, symbol, admin, admin, token, aaveV3Addresses, compoundV3Addresses], 
        { initializer: "initialize" }
     );
     const vault = await vaultDeploy.deployed();
