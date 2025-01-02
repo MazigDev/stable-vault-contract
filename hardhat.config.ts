@@ -22,8 +22,10 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        url: "https://ethereum-rpc.publicnode.com",
-        blockNumber: 21412492// Optional: specify a block number to fork from
+        // url: "https://ethereum-rpc.publicnode.com",
+        // blockNumber: 21412492// Optional: specify a block number to fork from
+        url: "https://bsc-testnet-rpc.publicnode.com",
+        blockNumber: 46972512 // Optional: specify a block number to fork from
       },
       accounts: [
         {
@@ -62,6 +64,24 @@ const config: HardhatUserConfig = {
     // },
     sepolia: {
       url: "https://eth-sepolia.public.blastapi.io",
+      accounts: {
+        mnemonic: process.env.TEST_MNEMONIC,
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+      }
+    },
+    bsc_testnet: {
+      url: "https://bsc-testnet-rpc.publicnode.com",
+      accounts: {
+        mnemonic: process.env.TEST_MNEMONIC,
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+      }
+    },
+    bsc_mainnet: {
+      url: "https://bsc-rpc.publicnode.com",
       accounts: {
         mnemonic: process.env.TEST_MNEMONIC,
         path: "m/44'/60'/0'/0",

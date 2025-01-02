@@ -5,8 +5,8 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {ERC20Upgradeable} from "@openzeppelin/contracts-upgradeable/token/ERC20/ERC20Upgradeable.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {IAaveV3, DataTypes} from "./IAave.sol";
-// import {ICompoundV2} from "./ICompoundV2.sol";
-import {ICompoundV3} from "./ICompoundV3.sol";
+import {ICompoundV2} from "./ICompoundV2.sol";
+// import {ICompoundV3} from "./ICompoundV3.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/proxy/transparent/TransparentUpgradeableProxy.sol";
 import "@openzeppelin/contracts/proxy/transparent/ProxyAdmin.sol";
@@ -16,7 +16,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     address public admin;
     address public token;
     address[] public aaveV3Addresses;
-    address[] public compoundV3Addresses;
+    address[] public compoundV2Addresses;
     uint256 public constant MAX_UINT = 2**256 - 1;
     mapping(address => uint256) public distributeAmount;
     mapping(address => uint256) public distributeAmountLp;
@@ -60,14 +60,14 @@ contract Vault is Initializable, ERC20Upgradeable {
         }
     }
 
-    function checkCompoundV3Addresses(address[] memory _array) internal view {
-        require(checkSortedArray(_array), "Compound v3 vaults not sorted");
+    function checkCompoundV2Addresses(address[] memory _array) internal view {
+        require(checkSortedArray(_array), "Compound v2 vaults not sorted");
         for (uint i = 0; i < _array.length; i++) {
             require(
-                ICompoundV3(_array[i]).baseToken() == token,
+                ICompoundV2(_array[i]).underlying() == token,
                 string(
                     abi.encodePacked(
-                        "Invalid Compound v3 address: ",
+                        "Invalid Compound v2 address: ",
                         Strings.toHexString(uint160(_array[i]), 20)
                     )
                 )
@@ -82,7 +82,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         address _admin,
         address _token,
         address[] memory _aaveV3Addresses,
-        address[] memory _compoundV3Addresses
+        address[] memory _compoundV2Addresses
     ) public initializer {
         __ERC20_init(_name, _symbol);
         
@@ -102,9 +102,9 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(IERC20(_token).totalSupply() > 0, "Invalid token address");
         token = _token;
         checkAaveV3Addresses(_aaveV3Addresses);
-        checkCompoundV3Addresses(_compoundV3Addresses);
+        checkCompoundV2Addresses(_compoundV2Addresses);
         aaveV3Addresses = _aaveV3Addresses;
-        compoundV3Addresses = _compoundV3Addresses;
+        compoundV2Addresses = _compoundV2Addresses;
     }
 
     function setAdmin(address _newAdmin) external onlyOwner {
@@ -117,9 +117,9 @@ contract Vault is Initializable, ERC20Upgradeable {
         aaveV3Addresses = _aaveV3Addresses;
     }
 
-    function setCompoundV3Addresses(address[] memory _compoundV3Addresses) external onlyAdmin {
-        checkCompoundV3Addresses(_compoundV3Addresses);
-        compoundV3Addresses = _compoundV3Addresses;
+    function setCompoundV2Addresses(address[] memory _compoundV2Addresses) external onlyAdmin {
+        checkCompoundV2Addresses(_compoundV2Addresses);
+        compoundV2Addresses = _compoundV2Addresses;
     }
 
     function balanceAaveV3(address _aaveAddress) public view returns (uint256) {
@@ -127,21 +127,21 @@ contract Vault is Initializable, ERC20Upgradeable {
         return IERC20(reserve.aTokenAddress).balanceOf(address(this));
     }
 
-    function balanceCompoundV3(address _compoundAddress) public view returns (uint256) {
-        return ICompoundV3(_compoundAddress).balanceOf(address(this));
+    function balanceCompoundV2(address _compoundAddress) public returns (uint256) {
+        return ICompoundV2(_compoundAddress).balanceOfUnderlying(address(this));
     }
 
     function balanceToken() public view returns (uint256) {
         return IERC20(token).balanceOf(address(this));
     }
 
-    function totalTokenSupply() public view returns (uint256) {
+    function totalTokenSupply() public returns (uint256) {
         uint256 totalSupply = balanceToken();
         for (uint i = 0; i < aaveV3Addresses.length; i++) {
             totalSupply += balanceAaveV3(aaveV3Addresses[i]);
         }
-        for (uint i = 0; i < compoundV3Addresses.length; i++) {
-            totalSupply += balanceCompoundV3(compoundV3Addresses[i]);
+        for (uint i = 0; i < compoundV2Addresses.length; i++) {
+            totalSupply += balanceCompoundV2(compoundV2Addresses[i]);
         }
         return totalSupply;
     }
@@ -169,27 +169,27 @@ contract Vault is Initializable, ERC20Upgradeable {
         IAaveV3(aaveV3Addresses[aaveIndex]).withdraw(token, amount, address(this));
     }
 
-    function supplyCompoundV3(uint compoundIndex, uint256 amount) external onlyAdmin {
-        require(compoundIndex < compoundV3Addresses.length, "Invalid Compound v3 index");
+    function supplyCompoundV2(uint compoundIndex, uint256 amount) external onlyAdmin {
+        require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceToken();
         }
         else {
             require(amount <= balanceToken(), "Insufficient balance");
         }
-        SafeERC20.forceApprove(IERC20(token), compoundV3Addresses[compoundIndex], amount);
-        ICompoundV3(compoundV3Addresses[compoundIndex]).supply(token, amount);
+        SafeERC20.forceApprove(IERC20(token), compoundV2Addresses[compoundIndex], amount);
+        ICompoundV2(compoundV2Addresses[compoundIndex]).mint(amount);
     }
 
-    function withdrawCompoundV3(uint compoundIndex, uint256 amount) external onlyAdmin {
-        require(compoundIndex < compoundV3Addresses.length, "Invalid Compound v3 index");
+    function withdrawCompoundV2(uint compoundIndex, uint256 amount) external onlyAdmin {
+        require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
-            amount = balanceCompoundV3(compoundV3Addresses[compoundIndex]);
+            amount = balanceCompoundV2(compoundV2Addresses[compoundIndex]);
         }
         else {
-            require(amount <= balanceCompoundV3(compoundV3Addresses[compoundIndex]), "Insufficient balance");
+            require(amount <= balanceCompoundV2(compoundV2Addresses[compoundIndex]), "Insufficient balance");
         }
-        ICompoundV3(compoundV3Addresses[compoundIndex]).withdraw(token, amount);
+        ICompoundV2(compoundV2Addresses[compoundIndex]).redeemUnderlying(amount);
     }
 
     function deposit(uint256 amount) external {
@@ -227,7 +227,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         return result;
     }
 
-    function balanceTokenOf(address from) external view returns (uint256) {
+    function balanceTokenOf(address from) external returns (uint256) {
         return balanceOf(from) * totalTokenSupply() / totalSupply();
     }
 }
