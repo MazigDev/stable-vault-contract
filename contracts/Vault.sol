@@ -197,6 +197,29 @@ contract Vault is Initializable, ERC20Upgradeable {
         IAaveV3(aaveV3Addresses[aaveIndex]).withdraw(token, amount, address(this));
     }
 
+    function supplyCompoundV2(uint compoundIndex, uint256 amount) external onlyAdmin {
+        require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
+        if (amount == MAX_UINT) {
+            amount = balanceToken();
+        }
+        else {
+            require(amount <= balanceToken(), "Insufficient balance");
+        }
+        SafeERC20.forceApprove(IERC20(token), compoundV2Addresses[compoundIndex], amount);
+        ICompoundV2(compoundV2Addresses[compoundIndex]).mint(amount);
+    }
+
+    function withdrawCompoundV2(uint compoundIndex, uint256 amount) external onlyAdmin {
+        require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
+        if (amount == MAX_UINT) {
+            amount = balanceCompoundV2(compoundV2Addresses[compoundIndex]);
+        }
+        else {
+            require(amount <= balanceCompoundV2(compoundV2Addresses[compoundIndex]), "Insufficient balance");
+        }
+        ICompoundV2(compoundV2Addresses[compoundIndex]).redeemUnderlying(amount);
+    }
+    
     function supplyCompoundV3(uint compoundIndex, uint256 amount) external onlyAdmin {
         require(compoundIndex < compoundV3Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
