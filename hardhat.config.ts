@@ -37,7 +37,7 @@ const config: HardhatUserConfig = {
         {
           privateKey: "0x1cdeb77d109ab2530c4822d9e2f39ab9e050c69a5d080c2914dbe084c9eea481",
           balance: "20000000000000000000000" // 20,000 ETH
-        },
+        },  
         {
           privateKey: "0x4510ba81bf64df1d4a729cb0c4ded3f97c32f5cd8994cf7968bb3c29ac954603",
           balance: "20000000000000000000000" // 20,000 ETH
@@ -60,15 +60,15 @@ const config: HardhatUserConfig = {
     //     passphrase: "",
     //   }
     // },
-    sepolia: {
-      url: "https://eth-sepolia.public.blastapi.io",
-      accounts: {
-        mnemonic: process.env.TEST_MNEMONIC,
-        path: "m/44'/60'/0'/0",
-        initialIndex: 0,
-        count: 20,
-      }
-    }
+    // sepolia: {
+    //   url: "https://eth-sepolia.public.blastapi.io",
+    //   accounts: {
+    //     mnemonic: process.env.TEST_MNEMONIC,
+    //     path: "m/44'/60'/0'/0",
+    //     initialIndex: 0,
+    //     count: 20,
+    //   }
+    // }
   },
   typechain: {
     outDir: "typechain",
