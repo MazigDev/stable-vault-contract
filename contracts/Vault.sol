@@ -125,7 +125,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function setAdmin(address _newAdmin) external onlyOwner {
-        require(admin != address(0), "Invalid admin address");
+        require(_newAdmin != address(0), "Invalid admin address");
         admin = _newAdmin;
     }
 
@@ -279,6 +279,9 @@ contract Vault is Initializable, ERC20Upgradeable {
     }
 
     function balanceTokenOf(address from) external returns (uint256) {
+        if (totalSupply() == 0) {
+            return 0;
+        }
         return balanceOf(from) * totalTokenSupply() / totalSupply();
     }
 }
