@@ -12,7 +12,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   gasReporter: {
     enabled: true,                // Bật báo cáo gas
     currency: "USD",              // Đơn vị tiền tệ
@@ -22,10 +30,8 @@ const config: HardhatUserConfig = {
   networks: {
     hardhat: {
       forking: {
-        // url: "https://ethereum-rpc.publicnode.com",
-        // blockNumber: 21412492// Optional: specify a block number to fork from
-        url: "https://bsc-testnet-rpc.publicnode.com",
-        blockNumber: 46972512 // Optional: specify a block number to fork from
+        url: "https://ethereum-rpc.publicnode.com",
+        blockNumber: 21412492// Optional: specify a block number to fork from
       },
       accounts: [
         {
@@ -69,7 +75,8 @@ const config: HardhatUserConfig = {
         path: "m/44'/60'/0'/0",
         initialIndex: 0,
         count: 20,
-      }
+      },
+      allowUnlimitedContractSize: true,
     },
     bsc_testnet: {
       url: "https://bsc-testnet-rpc.publicnode.com",
@@ -78,7 +85,8 @@ const config: HardhatUserConfig = {
         path: "m/44'/60'/0'/0",
         initialIndex: 0,
         count: 20,
-      }
+      },
+      allowUnlimitedContractSize: true,
     },
     bsc_mainnet: {
       url: "https://bsc-rpc.publicnode.com",
@@ -87,7 +95,8 @@ const config: HardhatUserConfig = {
         path: "m/44'/60'/0'/0",
         initialIndex: 0,
         count: 20,
-      }
+      },
+      allowUnlimitedContractSize: true,
     }
   },
   typechain: {

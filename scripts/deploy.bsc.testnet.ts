@@ -14,24 +14,11 @@ async function test() {
     //     ["0xae13d989daC2f0dEbFf460aC112a837C89BAa7cd", token],
     //     wallet.address,
     //     "1000000000000000000",
-    //     { value: ethers.utils.parseEther("4") });
+    //     { value: ethers.utils.parseEther("0.5") });
     // await tx.wait();
 
-    // const usdt = IERC20__factory.connect(token, wallet);
-    const usdc = IERC20__factory.connect("0x16227D60f7a0e586C66B005219dfc887D13C9531", wallet);
-
-    // tx = await usdt.approve(router.address, await usdt.balanceOf(wallet.address));
-    // await tx.wait();
-
-    // tx = await router.swapExactTokensForTokens(
-    //     await usdt.balanceOf(wallet.address),
-    //     0,
-    //     [usdt.address, usdc.address],
-    //     wallet.address,
-    //     "1000000000000000000"
-    // )
-    // await tx.wait();
-    // console.log(await usdc.balanceOf(wallet.address));
+    const usdt = IERC20__factory.connect(token, wallet);
+    // console.log(await usdt.balanceOf(wallet.address));
 
     // console.log(await usdt.balanceOf(wallet.address));
 
@@ -49,23 +36,29 @@ async function test() {
     // const vault = await vaultDeploy.deployed();
     // console.log("Vault deployed to:", vault.address);
 
-    const vault = Vault__factory.connect("0xA08Bc5Ef2A602d1C5E821BdFC0329160e03Af3f0", wallet);
-    const amount = await usdc.balanceOf(wallet.address);
+    const vault = Vault__factory.connect("0x05035124a03bA25Ad593Cd39b42777F94b813ecc", wallet);
+    const amount = await usdt.balanceOf(wallet.address);
     const compoundV2Address = "0xD5C4C2e2facBEB59D0216D0595d63FcDc6F9A1a7";
-
-    // tx = await usdc.approve(vault.address, amount);
+    const compoundV2 = ICompoundV2__factory.connect(compoundV2Address, wallet);
+    // tx = await usdt.approve(vault.address, amount);
     // await tx.wait();
 
     // tx = await vault.deposit(amount);
     // await tx.wait();
 
-    // tx = await vault.supplyCompoundV2(0, amount);
+    const amount2 = await vault.callStatic.balanceCompoundV2(compoundV2Address);
+    console.log(amount2.toString());
+
+    // tx = await vault.supplyCompoundV2(0, amount2);
     // await tx.wait();
+
+    // console.log(await vault.callStatic.balanceCompoundV2(compoundV2Address));
+
+    tx = await vault.withdrawCompoundV2(0, MAX_UINT);
+    await tx.wait();
 
     console.log(await vault.callStatic.balanceCompoundV2(compoundV2Address));
-
-    // tx = await vault.withdrawCompoundV3(0, 1);
-    // await tx.wait();
+    console.log(await compoundV2.balanceOf(vault.address));
 
     // console.log(await vault.balanceToken())
 
