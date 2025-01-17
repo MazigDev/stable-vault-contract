@@ -12,7 +12,15 @@ import dotenv from "dotenv";
 dotenv.config();
 
 const config: HardhatUserConfig = {
-  solidity: "0.8.20",
+  solidity: {
+    version: "0.8.20",
+    settings: {
+      optimizer: {
+        enabled: true,
+        runs: 200
+      }
+    }
+  },
   gasReporter: {
     enabled: true,                // Bật báo cáo gas
     currency: "USD",              // Đơn vị tiền tệ

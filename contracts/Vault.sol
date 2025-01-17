@@ -238,11 +238,14 @@ contract Vault is Initializable, ERC20Upgradeable {
         require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceCompoundV2(compoundV2Addresses[compoundIndex]);
+            uint256 redeem = ICompoundV2(compoundV2Addresses[compoundIndex]).balanceOf(address(this));
+            ICompoundV2(compoundV2Addresses[compoundIndex]).redeem(redeem);
+        
         }
         else {
             require(amount <= balanceCompoundV2(compoundV2Addresses[compoundIndex]), "Insufficient balance");
+            ICompoundV2(compoundV2Addresses[compoundIndex]).redeemUnderlying(amount);
         }
-        ICompoundV2(compoundV2Addresses[compoundIndex]).redeemUnderlying(amount);
         return amount;
     }
     

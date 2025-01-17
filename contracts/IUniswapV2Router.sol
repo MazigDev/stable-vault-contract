@@ -47,4 +47,12 @@ interface IUniswapV2Router02 {
         address to,
         uint deadline
     ) external payable returns (uint[] memory amounts);
+
+    function swapExactBNBForTokens(
+        uint amountOutMin,
+        address[] calldata path,
+        address to,
+        uint deadline
+    ) external payable returns (uint[] memory amounts);
+    
 }
