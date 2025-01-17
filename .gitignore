@@ -18,3 +18,5 @@ ignition/deployments/chain-31337
 
 test.*.ts
 script.*.ts
+
+**/test.*.ts
