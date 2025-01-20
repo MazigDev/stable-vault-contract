@@ -111,7 +111,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         string memory _name, 
         string memory _symbol, 
         address _owner,
-        address _admin,
+        address _whitelist,
         address _token,
         address[] memory _aaveV3Addresses,
         address[] memory _compoundV2Addresses,
@@ -126,11 +126,11 @@ contract Vault is Initializable, ERC20Upgradeable {
             owner = _owner;
         }
 
-        if (_admin == address(0)) {
+        if (_whitelist == address(0)) {
             whitelist = owner;
         }
         else {
-            whitelist = _admin;
+            whitelist = _whitelist;
         }
         require(IERC20(_token).totalSupply() > 0, "Invalid token address");
         token = _token;
@@ -142,9 +142,9 @@ contract Vault is Initializable, ERC20Upgradeable {
         compoundV3Addresses = _compoundV3Addresses;
     }
 
-    function setAdmin(address _newAdmin) public onlyOwner {
-        require(_newAdmin != address(0), "Invalid admin address");
-        whitelist = _newAdmin;
+    function setWhitelist(address _whitelist) public onlyOwner {
+        require(_whitelist != address(0), "Invalid whitelist address");
+        whitelist = _whitelist;
     }
 
     function setAaveV3Addresses(address[] memory _aaveV3Addresses) public onlyOwner {
@@ -208,8 +208,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         IAaveV3(aaveV3Addresses[aaveIndex]).deposit(token, amount, address(this), 0);
     }
 
-    function withdrawAaveV3(uint aaveIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        require(amount != 0, "Invalid amount");
+    function _withdrawAaveV3(uint aaveIndex, uint256 amount) internal returns (uint256) {
         require(aaveIndex < aaveV3Addresses.length, "Invalid Aave index");
         if (amount == MAX_UINT) {
             amount = balanceAaveV3(aaveV3Addresses[aaveIndex]);
@@ -219,6 +218,10 @@ contract Vault is Initializable, ERC20Upgradeable {
         }
         IAaveV3(aaveV3Addresses[aaveIndex]).withdraw(token, amount, address(this));
         return amount;
+    }
+
+    function withdrawAaveV3(uint aaveIndex, uint256 amount) public onlyWhitelist returns (uint256) {
+        return _withdrawAaveV3(aaveIndex, amount);
     }
 
     function supplyCompoundV2(uint compoundIndex, uint256 amount) public onlyWhitelist {
@@ -233,8 +236,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         ICompoundV2(compoundV2Addresses[compoundIndex]).mint(amount);
     }
 
-    function withdrawCompoundV2(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        require(amount != 0, "Invalid amount");
+    function _withdrawCompoundV2(uint compoundIndex, uint256 amount) internal returns (uint256) {
         require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceCompoundV2(compoundV2Addresses[compoundIndex]);
@@ -247,6 +249,10 @@ contract Vault is Initializable, ERC20Upgradeable {
             ICompoundV2(compoundV2Addresses[compoundIndex]).redeemUnderlying(amount);
         }
         return amount;
+    }
+
+    function withdrawCompoundV2(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
+        return _withdrawCompoundV2(compoundIndex, amount);
     }
     
     function supplyCompoundV3(uint compoundIndex, uint256 amount) public onlyWhitelist {
@@ -261,8 +267,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         ICompoundV3(compoundV3Addresses[compoundIndex]).supply(token, amount);
     }
 
-    function withdrawCompoundV3(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        require(amount != 0, "Invalid amount");
+    function _withdrawCompoundV3(uint compoundIndex, uint256 amount) internal returns (uint256) {
         require(compoundIndex < compoundV3Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceCompoundV3(compoundV3Addresses[compoundIndex]);
@@ -272,6 +277,10 @@ contract Vault is Initializable, ERC20Upgradeable {
         }
         ICompoundV3(compoundV3Addresses[compoundIndex]).withdraw(token, amount);
         return amount;
+    }
+
+    function withdrawCompoundV3(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
+        return _withdrawCompoundV3(compoundIndex, amount);
     }
 
     function balanceTokenOf(address from) public returns (uint256) {
@@ -325,13 +334,19 @@ contract Vault is Initializable, ERC20Upgradeable {
         uint256 totalWithdrawAmount = 0;
         uint256 userBalance = balanceTokenOf(msg.sender);
         for (uint i = 0; i < aaveV3Addresses.length; i++) {
-            totalWithdrawAmount += withdrawAaveV3(i, path.aaveV3Amounts[i]);
+            if (path.aaveV3Amounts[i] > 0) {
+                totalWithdrawAmount += _withdrawAaveV3(i, path.aaveV3Amounts[i]);
+            }
         }
         for (uint i = 0; i < compoundV2Addresses.length; i++) {
-            totalWithdrawAmount += withdrawCompoundV2(i, path.compoundV2Amounts[i]);
+            if (path.compoundV2Amounts[i] > 0) {
+                totalWithdrawAmount += _withdrawCompoundV2(i, path.compoundV2Amounts[i]);
+            }
         }
         for (uint i = 0; i < compoundV3Addresses.length; i++) {
-            totalWithdrawAmount += withdrawCompoundV3(i, path.compoundV3Amounts[i]);
+            if (path.compoundV3Amounts[i] > 0) {
+                totalWithdrawAmount += _withdrawCompoundV3(i, path.compoundV3Amounts[i]);
+            }
         }
 
         require(path.vaultAmount <= MAX_UINT - totalWithdrawAmount, "Invalid vault amount");

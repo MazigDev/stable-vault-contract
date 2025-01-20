@@ -77,6 +77,17 @@ const config: HardhatUserConfig = {
     //     count: 20,
     //   }
     // }
+    testnet: {
+      url: "http://157.245.149.213:8545",
+      accounts: {
+        mnemonic: "test test test test test test test test test test test junk",
+        // mnemonic: process.env.TEST_MNEMONIC,
+        path: "m/44'/60'/0'/0",
+        initialIndex: 0,
+        count: 20,
+        passphrase: "",
+      }
+    }
   },
   typechain: {
     outDir: "typechain",
