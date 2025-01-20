@@ -12,7 +12,24 @@ import "@openzeppelin/contracts/utils/Strings.sol";
 
 import {console} from "hardhat/console.sol";
 
-contract Vault is Initializable, ERC20Upgradeable {
+struct Path {
+    uint256 vaultAmount;
+    uint256[] aaveV3Amounts;
+    uint256[] compoundV2Amounts;
+    uint256[] compoundV3Amounts;
+    uint256 lastBlock;
+}
+
+interface IVault {
+    function supplyAaveV3(uint aaveIndex, uint256 amount) external;
+    function withdrawAaveV3(uint aaveIndex, uint256 amount) external returns (uint256);
+    function supplyCompoundV2(uint compoundIndex, uint256 amount) external;
+    function withdrawCompoundV2(uint compoundIndex, uint256 amount) external returns (uint256);
+    function supplyCompoundV3(uint compoundIndex, uint256 amount) external;
+    function withdrawCompoundV3(uint compoundIndex, uint256 amount) external returns (uint256);
+}
+
+contract Vault is Initializable, ERC20Upgradeable, IVault {
     address public owner;
     address public whitelist;
     address public token;
@@ -34,13 +51,7 @@ contract Vault is Initializable, ERC20Upgradeable {
     event SetCompoundV2Addresses(address[] _compoundV2Addresses);
     event SetCompoundV3Addresses(address[] _compoundV3Addresses);
 
-    struct Path {
-        uint256 vaultAmount;
-        uint256[] aaveV3Amounts;
-        uint256[] compoundV2Amounts;
-        uint256[] compoundV3Amounts;
-        uint256 lastBlock;
-    }
+    
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the owner");
@@ -360,10 +371,45 @@ contract Vault is Initializable, ERC20Upgradeable {
         emit Withdraw(msg.sender, totalWithdrawAmountLp, totalWithdrawAmount);
     }
 
-    function executeTransaction(address target, uint value, bytes memory data) public payable onlyOwner returns (bytes memory) {
+    function executeTransaction(address target, uint value, bytes calldata data) public payable onlyOwner returns (bytes memory) {
         (bool success, bytes memory result) = target.call{value: value}(data);
         require(success, "Transaction failed");
         return result;
     }
+
+    function executeMultipleCalls(bytes[] calldata calls) public {
+        for (uint i = 0; i < calls.length; i++) {
+            bytes calldata data = calls[i];
+            bytes4 selector = bytes4(data[:4]);
+            if (selector == IVault.supplyAaveV3.selector) {
+                (uint aaveIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                supplyAaveV3(aaveIndex, amount);
+            }
+            else if (selector == IVault.withdrawAaveV3.selector) {
+                (uint aaveIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                withdrawAaveV3(aaveIndex, amount);
+            }
+            else if (selector == IVault.supplyCompoundV2.selector) {
+                (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                supplyCompoundV2(compoundIndex, amount);
+            }
+            else if (selector == IVault.withdrawCompoundV2.selector) {
+                (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                withdrawCompoundV2(compoundIndex, amount);
+            }
+            else if (selector == IVault.supplyCompoundV3.selector) {
+                (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                supplyCompoundV3(compoundIndex, amount);
+            }
+            else if (selector == IVault.withdrawCompoundV3.selector) {
+                (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
+                withdrawCompoundV3(compoundIndex, amount);
+            }
+            else {
+                revert("Invalid selector");
+            }
+        }
+    }
 }
+
 
