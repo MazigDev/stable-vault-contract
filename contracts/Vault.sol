@@ -29,7 +29,7 @@ interface IVault {
     function withdrawCompoundV3(uint compoundIndex, uint256 amount) external returns (uint256);
 }
 
-contract Vault is Initializable, ERC20Upgradeable, IVault {
+contract Vault is Initializable, ERC20Upgradeable {
     address public owner;
     address public whitelist;
     address public token;
@@ -39,9 +39,8 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
     address[] public compoundV3Addresses;
 
     uint256 public lastUpdateBlock;
-    uint256 public constant limitDeadlineBlock = 10;
+    uint256 public limitDeadlineBlock;
 
-    
     uint256 public constant MAX_UINT = type(uint256).max;
     bytes32 public constant FINGERPRINT = keccak256("MAZIG_VAULT_0");
 
@@ -50,8 +49,6 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
     event SetAaveV3Addresses(address[] _aaveV3Addresses);
     event SetCompoundV2Addresses(address[] _compoundV2Addresses);
     event SetCompoundV3Addresses(address[] _compoundV3Addresses);
-
-    
 
     modifier onlyOwner() {
         require(msg.sender == owner, "Not the owner");
@@ -126,7 +123,8 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         address _token,
         address[] memory _aaveV3Addresses,
         address[] memory _compoundV2Addresses,
-        address[] memory _compoundV3Addresses
+        address[] memory _compoundV3Addresses,
+        uint256 _limitDeadlineBlock
     ) public initializer {
         __ERC20_init(_name, _symbol);
         
@@ -151,6 +149,7 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         aaveV3Addresses = _aaveV3Addresses;
         compoundV2Addresses = _compoundV2Addresses;
         compoundV3Addresses = _compoundV3Addresses;
+        limitDeadlineBlock = _limitDeadlineBlock;
     }
 
     function setWhitelist(address _whitelist) public onlyOwner {
@@ -207,7 +206,7 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         return totalSupply;
     }
 
-    function supplyAaveV3(uint aaveIndex, uint256 amount) public onlyWhitelist {
+    function _supplyAaveV3(uint aaveIndex, uint256 amount) internal {
         require(aaveIndex < aaveV3Addresses.length, "Invalid Aave index");
         if (amount == MAX_UINT) {
             amount = balanceToken();
@@ -231,11 +230,7 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         return amount;
     }
 
-    function withdrawAaveV3(uint aaveIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        return _withdrawAaveV3(aaveIndex, amount);
-    }
-
-    function supplyCompoundV2(uint compoundIndex, uint256 amount) public onlyWhitelist {
+    function _supplyCompoundV2(uint compoundIndex, uint256 amount) internal {
         require(compoundIndex < compoundV2Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceToken();
@@ -261,12 +256,8 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         }
         return amount;
     }
-
-    function withdrawCompoundV2(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        return _withdrawCompoundV2(compoundIndex, amount);
-    }
     
-    function supplyCompoundV3(uint compoundIndex, uint256 amount) public onlyWhitelist {
+    function _supplyCompoundV3(uint compoundIndex, uint256 amount) internal {
         require(compoundIndex < compoundV3Addresses.length, "Invalid Compound v3 index");
         if (amount == MAX_UINT) {
             amount = balanceToken();
@@ -288,10 +279,6 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         }
         ICompoundV3(compoundV3Addresses[compoundIndex]).withdraw(token, amount);
         return amount;
-    }
-
-    function withdrawCompoundV3(uint compoundIndex, uint256 amount) public onlyWhitelist returns (uint256) {
-        return _withdrawCompoundV3(compoundIndex, amount);
     }
 
     function balanceTokenOf(address from) public returns (uint256) {
@@ -377,38 +364,41 @@ contract Vault is Initializable, ERC20Upgradeable, IVault {
         return result;
     }
 
-    function executeMultipleCalls(bytes[] calldata calls) public {
+    function executeMultipleCalls(bytes[] calldata calls, uint256 lastBlock) public onlyWhitelist {
+        require(lastBlock >= lastUpdateBlock && lastBlock <= block.number, "Invalid block");
+        require(lastBlock >= block.number - limitDeadlineBlock, "Expired block");
         for (uint i = 0; i < calls.length; i++) {
             bytes calldata data = calls[i];
             bytes4 selector = bytes4(data[:4]);
             if (selector == IVault.supplyAaveV3.selector) {
                 (uint aaveIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                supplyAaveV3(aaveIndex, amount);
+                _supplyAaveV3(aaveIndex, amount);
             }
             else if (selector == IVault.withdrawAaveV3.selector) {
                 (uint aaveIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                withdrawAaveV3(aaveIndex, amount);
+                _withdrawAaveV3(aaveIndex, amount);
             }
             else if (selector == IVault.supplyCompoundV2.selector) {
                 (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                supplyCompoundV2(compoundIndex, amount);
+                _supplyCompoundV2(compoundIndex, amount);
             }
             else if (selector == IVault.withdrawCompoundV2.selector) {
                 (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                withdrawCompoundV2(compoundIndex, amount);
+                _withdrawCompoundV2(compoundIndex, amount);
             }
             else if (selector == IVault.supplyCompoundV3.selector) {
                 (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                supplyCompoundV3(compoundIndex, amount);
+                _supplyCompoundV3(compoundIndex, amount);
             }
             else if (selector == IVault.withdrawCompoundV3.selector) {
                 (uint compoundIndex, uint256 amount) = abi.decode(data[4:], (uint, uint256));
-                withdrawCompoundV3(compoundIndex, amount);
+                _withdrawCompoundV3(compoundIndex, amount);
             }
             else {
                 revert("Invalid selector");
             }
         }
+        lastUpdateBlock = block.number;
     }
 }
 
