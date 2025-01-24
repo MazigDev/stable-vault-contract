@@ -17,7 +17,7 @@ struct Path {
     uint256[] aaveV3Amounts;
     uint256[] compoundV2Amounts;
     uint256[] compoundV3Amounts;
-    uint256 lastBlock;
+    uint256 lastTimestamp;
 }
 
 interface IVault {
@@ -38,11 +38,11 @@ contract Vault is Initializable, ERC20Upgradeable {
     address[] public compoundV2Addresses;
     address[] public compoundV3Addresses;
 
-    uint256 public lastUpdateBlock;
-    uint256 public limitDeadlineBlock;
+    uint256 public lastUpdateTimestamp;
+    uint256 public limitDeadlineTimestamp;
 
     uint256 public constant MAX_UINT = type(uint256).max;
-    bytes32 public constant FINGERPRINT = keccak256("MAZIG_VAULT_0");
+    bytes32 public constant FINGERPRINT = keccak256("MAZIG_VAULT_1");
 
     event Deposit(address indexed user, uint256 amountLp, uint256 amount);
     event Withdraw(address indexed to, uint256 amountLp, uint256 amount);
@@ -124,7 +124,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         address[] memory _aaveV3Addresses,
         address[] memory _compoundV2Addresses,
         address[] memory _compoundV3Addresses,
-        uint256 _limitDeadlineBlock
+        uint256 _limitDeadlineTimestamp
     ) public initializer {
         __ERC20_init(_name, _symbol);
         
@@ -149,7 +149,7 @@ contract Vault is Initializable, ERC20Upgradeable {
         aaveV3Addresses = _aaveV3Addresses;
         compoundV2Addresses = _compoundV2Addresses;
         compoundV3Addresses = _compoundV3Addresses;
-        limitDeadlineBlock = _limitDeadlineBlock;
+        limitDeadlineTimestamp = _limitDeadlineTimestamp;
     }
 
     function setWhitelist(address _whitelist) public onlyOwner {
@@ -173,6 +173,10 @@ contract Vault is Initializable, ERC20Upgradeable {
         checkCompoundV3Addresses(_compoundV3Addresses);
         compoundV3Addresses = _compoundV3Addresses;
         emit SetCompoundV3Addresses(_compoundV3Addresses);
+    }
+
+    function setLimitDeadlineTimestamp(uint256 _limitDeadlineTimestamp) public onlyOwner {
+        limitDeadlineTimestamp = _limitDeadlineTimestamp;
     }
 
     function balanceAaveV3(address _aaveAddress) public view returns (uint256) {
@@ -301,8 +305,8 @@ contract Vault is Initializable, ERC20Upgradeable {
 
     function withdraw(Path memory path, bytes memory signature) public {
         // check path
-        require(path.lastBlock >= lastUpdateBlock && path.lastBlock <= block.number, "Invalid block");
-        require(path.lastBlock >= block.number - limitDeadlineBlock, "Expired block");
+        require(path.lastTimestamp >= lastUpdateTimestamp && path.lastTimestamp <= block.timestamp, "Invalid block");
+        require(path.lastTimestamp >= block.timestamp - limitDeadlineTimestamp, "Expired block");
         require(path.aaveV3Amounts.length == aaveV3Addresses.length, "Invalid Aave v3 amounts length");
         require(path.compoundV3Amounts.length == compoundV3Addresses.length, "Invalid Compound v3 amounts length");
         require(path.compoundV2Amounts.length == compoundV2Addresses.length, "Invalid Compound v2 amounts length");
@@ -313,7 +317,7 @@ contract Vault is Initializable, ERC20Upgradeable {
             path.aaveV3Amounts,
             path.compoundV2Amounts,
             path.compoundV3Amounts,
-            path.lastBlock,
+            path.lastTimestamp,
             msg.sender,
             FINGERPRINT
         ));
@@ -354,7 +358,7 @@ contract Vault is Initializable, ERC20Upgradeable {
 
         _burn(msg.sender, totalWithdrawAmountLp);
         SafeERC20.safeTransfer(IERC20(token), msg.sender, totalWithdrawAmount);
-        lastUpdateBlock = block.number;
+        lastUpdateTimestamp = block.timestamp;
         emit Withdraw(msg.sender, totalWithdrawAmountLp, totalWithdrawAmount);
     }
 
@@ -364,9 +368,9 @@ contract Vault is Initializable, ERC20Upgradeable {
         return result;
     }
 
-    function executeMultipleCalls(bytes[] calldata calls, uint256 lastBlock) public onlyWhitelist {
-        require(lastBlock >= lastUpdateBlock && lastBlock <= block.number, "Invalid block");
-        require(lastBlock >= block.number - limitDeadlineBlock, "Expired block");
+    function executeMultipleCalls(bytes[] calldata calls, uint256 lastTimestamp) public onlyWhitelist {
+        require(lastTimestamp >= lastUpdateTimestamp && lastTimestamp <= block.timestamp, "Invalid block");
+        require(lastTimestamp >= block.timestamp - limitDeadlineTimestamp, "Expired block");
         for (uint i = 0; i < calls.length; i++) {
             bytes calldata data = calls[i];
             bytes4 selector = bytes4(data[:4]);
@@ -398,7 +402,7 @@ contract Vault is Initializable, ERC20Upgradeable {
                 revert("Invalid selector");
             }
         }
-        lastUpdateBlock = block.number;
+        lastUpdateTimestamp = block.timestamp;
     }
 }
 

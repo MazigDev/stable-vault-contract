@@ -25,10 +25,10 @@ async function test() {
     // console.log("ProxyAdmin address:", proxyAdmin.address);
     // const proxyAdmin = "0x9ac11f57796C2C952217879926C369dBDfa09ee1";
 
-    // const proxyFactory = await ethers.getContractFactory("TransparentUpgradeableProxy");
-    // const name = "MAZIG Vault";
-    // const symbol = "MAZIG";
-    // const admin = wallet.address;
+    const proxyFactory = await ethers.getContractFactory("TransparentUpgradeableProxy");
+    const name = "MAZIG Vault";
+    const symbol = "MAZIG";
+    const admin = wallet.address;
 
     // const aaveV3Addresses = ["0x6807dc923806fE8Fd134338EABCA509979a7e0cB"];
     // const compoundV2Addresses: any = ["0xC4eF4229FEc74Ccfe17B2bdeF7715fAC740BA0ba"];
